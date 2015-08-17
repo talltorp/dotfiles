@@ -1,5 +1,4 @@
-syntax on                                                                                                                                                   syntax on
-
+syntax on                                       
 set background=dark
 
 set list
@@ -23,8 +22,9 @@ set splitright
 set splitbelow
 set wildignore+=*.o
 set guifont=Monaco:h14
+set noswapfile
 
-:let mapleader = "'"
+:let mapleader = " "
 
 filetype off
 set rtp+=~/.vim/bundle/Vundle.vim
@@ -39,6 +39,10 @@ Plugin 'jamessan/vim-gnupg'
 Plugin 'kchmck/vim-coffee-script'
 Plugin 'thoughtbot/vim-rspec'
 Plugin 'scrooloose/nerdcommenter'
+Plugin 'scrooloose/nerdtree'
+Plugin 'kien/ctrlp.vim'
+Plugin 'tpope/vim-surround'
+Plugin 'tpope/vim-ragtag'
 
 call vundle#end()
 filetype plugin indent on
@@ -60,17 +64,32 @@ if has("autocmd")
   autocmd Filetype gitcommit,mail setlocal spell textwidth=76
 endif
 
+" Tab completion
+" will insert tab at beginning of line,
+" will use completion if not at beginning
+set wildmode=list:longest,list:full
+function! InsertTabWrapper()
+    let col = col('.') - 1
+    if !col || getline('.')[col - 1] !~ '\k'
+        return "\<tab>"
+    else
+        return "\<c-p>"
+    endif
+endfunction
+inoremap <Tab> <c-r>=InsertTabWrapper()<cr>
+inoremap <S-Tab> <c-n>
 
+" Quicker window movement
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-h> <C-w>h
+nnoremap <C-l> <C-w>l
 
-noremap 1 :tabnext 1<CR>
-noremap 2 :tabnext 2<CR>
-noremap 3 :tabnext 3<CR>
-noremap 4 :tabnext 4<CR>
-noremap 5 :tabnext 5<CR>
-noremap 6 :tabnext 6<CR>
-noremap 7 :tabnext 7<CR>
-noremap 8 :tabnext 8<CR>
-noremap 9 :tabnext 9<CR>
+" paste toggle
+set pastetoggle=<F2>
+
+" NerdTree config
+map <C-e> :NERDTreeToggle<CR>
 
 map <leader>t :call ExecuteInShell("clear; ".TestCmd())<CR>
 map <leader>T :call ExecuteInShell("clear; ".TestCmd().":".line("."))<CR>
@@ -102,10 +121,9 @@ endfunction
 function! TestCmd()
     let l:file = expand("%;.")
     if(match(l:file, ".feature$") != -1)
-        echo "HERE"
         return "cucumber ".l:file
     elseif (match(l:file, "_spec.rb$") != -1)
-        return "rspec ".l:file
+        return "bundle exec rspec ".l:file
     elseif (match(l:file, ".rb$") != -1)
         return SpringCmd("testunit", "ruby -Itest")." ".l:file
     elseif(match(l:file, "_spec.js.coffee$") != -1)
@@ -125,4 +143,4 @@ nnoremap <Leader>p :call PickFile()<CR>
 nnoremap <Leader>s :call PickFileSplit()<CR>
 nnoremap <Leader>v :call PickFileVerticalSplit()<CR>
 nnoremap <Leader>y :call PickFileTab()<CR>
-n
+nnoremap <Leader>b :call PickBuffer()<CR>
